@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
+// const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -9,9 +9,9 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a name'],
       unique: true,
       trim: true,
-      maxlength: [40, 'A tour name must have less or equal than 40 charaters'],
-      minlength: [10, 'A tour name must have more or equal than 10 charaters'],
-      validate: [validator.isAlpha, 'Tour name must only contain characters'],
+      maxlength: [40, 'A tour name must have less or equal then 40 characters'],
+      minlength: [10, 'A tour name must have more or equal then 10 characters'],
+      // validate: [validator.isAlpha, 'Tour name must only contain characters']
     },
     slug: String,
     duration: {
@@ -21,6 +21,14 @@ const tourSchema = new mongoose.Schema(
     maxGroupSize: {
       type: Number,
       required: [true, 'A tour must have a group size'],
+    },
+    difficulty: {
+      type: String,
+      required: [true, 'A tour must have a difficulty'],
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message: 'Difficulty is either: easy, medium, difficult',
+      },
     },
     ratingsAverage: {
       type: Number,
@@ -32,14 +40,6 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    difficulty: {
-      type: String,
-      required: [true, 'A tour must have a difficulty'],
-      enum: {
-        values: ['easy', 'medium', 'difficult'],
-        message: 'Difficulty is either: easy, medium, difficult',
-      },
-    },
     price: {
       type: Number,
       required: [true, 'A tour must have a price'],
@@ -48,16 +48,16 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       validate: {
         validator: function (val) {
-          // this only points to current doc on NEW document creation!
+          // this only points to current doc on NEW document creation
           return val < this.price;
         },
-        message: 'Discount price ({VALUE}) should be below the regular price',
+        message: 'Discount price ({VALUE}) should be below regular price',
       },
     },
     summary: {
       type: String,
       trim: true,
-      required: [true, 'A tour mus have a description'],
+      required: [true, 'A tour must have a description'],
     },
     description: {
       type: String,
@@ -65,7 +65,7 @@ const tourSchema = new mongoose.Schema(
     },
     imageCover: {
       type: String,
-      required: [true, 'A tour mus have a cover image'],
+      required: [true, 'A tour must have a cover image'],
     },
     images: [String],
     createdAt: {
@@ -95,19 +95,18 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
-// tourSchema.pre('save', function (next) {
+// tourSchema.pre('save', function(next) {
 //   console.log('Will save document...');
 //   next();
 // });
 
-// tourSchema.post('save', function (doc, next) {
+// tourSchema.post('save', function(doc, next) {
 //   console.log(doc);
 //   next();
 // });
 
 // QUERY MIDDLEWARE
-
-// tourSchema.pre('find', function (next) {
+// tourSchema.pre('find', function(next) {
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
 
@@ -117,13 +116,13 @@ tourSchema.pre(/^find/, function (next) {
 
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-  // console.log(docs);
   next();
 });
 
 // AGGREGATION MIDDLEWARE
 tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+
   console.log(this.pipeline());
   next();
 });
